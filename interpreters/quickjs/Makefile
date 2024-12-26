@@ -1,6 +1,8 @@
 ############################################################################
 # apps/interpreters/quickjs/Makefile
 #
+# SPDX-License-Identifier: Apache-2.0
+#
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.  The
@@ -30,6 +32,7 @@ CSRCS = quickjs.c libregexp.c libbf.c libunicode.c cutils.c
 
 VERSION=\"$(QUICKJS_VERSION)\"
 
+CFLAGS += -Dmp_add=qjs_mp_add -Dmp_sub=qjs_mp_sub -Dmp_mul=qjs_mp_mul
 CFLAGS += -DCONFIG_VERSION=$(VERSION) -Wno-shadow
 CFLAGS += -Wno-array-bounds -I$(QUICKJS_UNPACK)
 CFLAGS += -D__linux__ -include alloca.h
@@ -51,6 +54,7 @@ CSRCS  += qjscalc.c
 endif
 
 VPATH += $(QUICKJS_UNPACK)
+DEPPATH += --dep-path $(QUICKJS_UNPACK)
 
 ifneq ($(CONFIG_INTERPRETERS_QUICKJS_NONE),y)
 PROGNAME  = qjs

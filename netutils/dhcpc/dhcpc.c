@@ -1,14 +1,11 @@
 /****************************************************************************
  * apps/netutils/dhcpc/dhcpc.c
  *
- *   Copyright (C) 2007, 2009, 2011-2012 Gregory Nutt. All rights reserved.
- *   Author: Gregory Nutt <gnutt@nuttx.org>
- *
- * Based heavily on portions of uIP:
- *
- *   Author: Adam Dunkels <adam@dunkels.com>
- *   Copyright (c) 2005, Swedish Institute of Computer Science
- *   All rights reserved.
+ * SPDX-License-Identifier: BSD-3-Clause
+ * SPDX-FileCopyrightText: 2007, 2009, 2011-2012 Gregory Nutt.
+ * SPDX-FileCopyrightText: 2005, Swedish Institute of Computer Science
+ * SPDX-FileContributor: Gregory Nutt <gnutt@nuttx.org>
+ * SPDX-FileContributor: Adam Dunkels <adam@dunkels.com>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -44,7 +41,6 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/time.h>
-#include <sys/random.h>
 
 #include <inttypes.h>
 #include <stdlib.h>
@@ -520,10 +516,6 @@ FAR void *dhcpc_open(FAR const char *interface, FAR const void *macaddr,
   struct sockaddr_in addr;
   struct timeval tv;
   int ret;
-  const uint8_t default_xid[4] =
-  {
-    0xad, 0xde, 0x12, 0x23
-  };
 
   ninfo("MAC: %02x:%02x:%02x:%02x:%02x:%02x\n",
         ((uint8_t *)macaddr)[0], ((uint8_t *)macaddr)[1],
@@ -544,19 +536,7 @@ FAR void *dhcpc_open(FAR const char *interface, FAR const void *macaddr,
        * used by another client.
        */
 
-#if defined(CONFIG_DEV_URANDOM) || defined(CONFIG_DEV_RANDOM)
-      ret = getrandom(pdhcpc->xid, 4, 0);
-      if (ret != 4)
-        {
-          ret = getrandom(pdhcpc->xid, 4, GRND_RANDOM);
-          if (ret != 4)
-            {
-              memcpy(pdhcpc->xid, default_xid, 4);
-            }
-        }
-#else
-      memcpy(pdhcpc->xid, default_xid, 4);
-#endif
+      arc4random_buf(pdhcpc->xid, 4);
 
       pdhcpc->interface = interface;
       pdhcpc->maclen    = maclen;

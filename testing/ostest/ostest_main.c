@@ -313,6 +313,14 @@ static int user_main(int argc, char *argv[])
   check_test_memory_usage();
 #endif
 
+#ifdef CONFIG_SCHED_THREAD_LOCAL
+  /* Test __thread/thread_local keyword */
+
+  printf("\nuser_main: sched_thread_local test\n");
+  sched_thread_local_test();
+  check_test_memory_usage();
+#endif
+
   /* Top of test loop */
 
 #if CONFIG_TESTING_OSTEST_LOOPS > 1
@@ -370,8 +378,8 @@ static int user_main(int argc, char *argv[])
       check_test_memory_usage();
 #endif
 
-#if !defined(CONFIG_DISABLE_PTHREAD) && \
-    (defined(CONFIG_SCHED_LPWORK) || defined(CONFIG_SCHED_HPWORK))
+#if !defined(CONFIG_DISABLE_PTHREAD) && defined(__KERNEL__) && \
+    defined(CONFIG_SCHED_WORKQUEUE)
       /* Check work queues */
 
       printf("\nuser_main: wqueue test\n");
@@ -470,7 +478,7 @@ static int user_main(int argc, char *argv[])
       pthread_rwlock_cancel_test();
       check_test_memory_usage();
 
-#if CONFIG_PTHREAD_CLEANUP_STACKSIZE > 0
+#if CONFIG_TLS_NCLEANUP > 0
       /* Verify pthread cancellation cleanup handlers */
 
       printf("\nuser_main: pthread_cleanup test\n");
@@ -521,6 +529,12 @@ static int user_main(int argc, char *argv[])
     !defined(CONFIG_BUILD_KERNEL)
       printf("\nuser_main: signal action test\n");
       suspend_test();
+      check_test_memory_usage();
+#endif
+
+#ifdef CONFIG_BUILD_FLAT
+      printf("\nuser_main: wdog test\n");
+      wdog_test();
       check_test_memory_usage();
 #endif
 
@@ -596,9 +610,17 @@ static int user_main(int argc, char *argv[])
       vfork_test();
 #endif
 
-#ifdef CONFIG_SMP_CALL
+#if defined(CONFIG_SMP) && defined(CONFIG_BUILD_FLAT)
       printf("\nuser_main: smp call test\n");
       smp_call_test();
+#endif
+
+#if defined(CONFIG_SCHED_EVENTS) && defined(CONFIG_BUILD_FLAT)
+      /* Verify nxevent */
+
+      printf("\nuser_main: nxevent test\n");
+      nxevent_test();
+      check_test_memory_usage();
 #endif
 
       /* Compare memory usage at time ostest_main started until

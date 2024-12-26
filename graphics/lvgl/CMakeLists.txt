@@ -1,6 +1,8 @@
 # ##############################################################################
 # apps/graphics/lvgl/CMakeLists.txt
 #
+# SPDX-License-Identifier: Apache-2.0
+#
 # Licensed to the Apache Software Foundation (ASF) under one or more contributor
 # license agreements.  See the NOTICE file distributed with this work for
 # additional information regarding copyright ownership.  The ASF licenses this
@@ -29,7 +31,7 @@ if(CONFIG_GRAPHICS_LVGL)
     FetchContent_Declare(
       lvgl_fetch
       DOWNLOAD_DIR ${CMAKE_CURRENT_LIST_DIR}
-      URL "https://github.com/lvgl/lvgl/archive/refs/tags/v9.1.0.zip"
+      URL "https://github.com/lvgl/lvgl/archive/refs/tags/v9.2.1.zip"
           SOURCE_DIR
           ${CMAKE_CURRENT_LIST_DIR}/lvgl
           BINARY_DIR
@@ -42,11 +44,8 @@ if(CONFIG_GRAPHICS_LVGL)
           ""
           TEST_COMMAND
           ""
-      PATCH_COMMAND
-        patch -p1 -s -d ${CMAKE_CURRENT_LIST_DIR}/lvgl <
-        ${CMAKE_CURRENT_LIST_DIR}/0001-fix-demo-fix-compile-warning.patch
       DOWNLOAD_NO_PROGRESS true
-      TIMEOUT 30)
+      TIMEOUT 120)
 
     FetchContent_GetProperties(lvgl_fetch)
 
@@ -115,6 +114,10 @@ if(CONFIG_GRAPHICS_LVGL)
       message(WARNING "LIB_JPEG_TURBO is not enabled")
     endif()
     nuttx_add_dependencies(TARGET lvgl DEPENDS turbojpeg-static)
+  endif()
+
+  if(NOT ${CONFIG_LV_OPTLEVEL} STREQUAL "")
+    add_compile_options(${CONFIG_LV_OPTLEVEL})
   endif()
 
   set_property(

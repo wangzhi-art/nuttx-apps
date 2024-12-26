@@ -1,6 +1,8 @@
 /****************************************************************************
  * apps/benchmarks/ramspeed/ramspeed_main.c
  *
+ * SPDX-License-Identifier: Apache-2.0
+ *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.  The
@@ -150,15 +152,28 @@ static void parse_commandline(int argc, FAR char **argv,
             break;
           case 'r':
             OPTARG_TO_VALUE(info->src, const void *, 16);
+            if (((uintptr_t)info->src & ALIGN_MASK) != 0)
+              {
+                printf(RAMSPEED_PREFIX "<read-adress> must align %p\n",
+                       info->src);
+                exit(EXIT_FAILURE);
+              }
+
             break;
           case 'w':
             OPTARG_TO_VALUE(info->dest, void *, 16);
+            if (((uintptr_t)info->dest & ALIGN_MASK) != 0)
+              {
+                printf(RAMSPEED_PREFIX "<write-adress> must align %p\n",
+                       info->dest);
+                exit(EXIT_FAILURE);
+              }
             break;
           case 's':
             OPTARG_TO_VALUE(info->size, size_t, 10);
             if (info->size < 32)
               {
-                printf(RAMSPEED_PREFIX "<size> must >= 32");
+                printf(RAMSPEED_PREFIX "<size> must >= 32\n");
                 exit(EXIT_FAILURE);
               }
 
@@ -187,13 +202,23 @@ static void parse_commandline(int argc, FAR char **argv,
         }
     }
 
-  if ((info->dest == NULL && !info->allocate_rw_address) || info->size == 0)
+  if (!info->allocate_rw_address && info->dest == NULL)
     {
-      printf(RAMSPEED_PREFIX "Missing required arguments\n");
+      /* We allow only set write address to test memset only.
+       * But if need test read by specific address, need write address also.
+       */
+
+      printf(RAMSPEED_PREFIX "Required Address Failed\n");
       goto out;
     }
-  else
+  else if (info->allocate_rw_address)
     {
+      if (info->size == 0)
+        {
+          printf(RAMSPEED_PREFIX "Required Size Failed\n");
+          goto out;
+        }
+
       /* We need to automatically apply for memory */
 
       printf(RAMSPEED_PREFIX "Allocate RW buffers on heap\n");
